@@ -14,9 +14,9 @@ params:
     groupId: locadora
     # Nome da Tablela do Dynamo
   dev:
-    tableName: locadora.filmes
+    tableName: locadora.filmes # Nome da tabela de DEV
   prd:
-    tableName: locadora.filmes
+    tableName: locadora.filmes # Nome da tabela de PRD
 
 provider:
   name: aws
