@@ -1,0 +1,86 @@
+# Nome de deploy do serverless
+service: sls-locadora-filmes
+frameworkVersion: "3"
+
+plugins:
+  - serverless-domain-manager
+  - serverless-iam-roles-per-function
+
+params:
+  default:
+    # Exemplos de artifactId: usuarios, critografica, trasnferencias.
+    artifactId: filmes
+    # Exemplos de groupId: ecommercer, backoffice, crm
+    groupId: locadora
+    # Nome da Tablela do Dynamo
+  dev:
+    tableName: locadora.filmes
+  prd:
+    tableName: locadora.filmes
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  iam:
+    role:
+      # Member must have length less than or equal to 64
+      name: ${self:service}-${sls:stage, 'dev'}-${opt:region, 'us-east-1'}
+  deploymentBucket:
+    # Name of an existing bucket to use (default: created by serverless)
+    name: sls-${param:groupId}-${sls:stage, 'dev'}-${opt:region, 'us-east-1'}-deploys
+  httpApi:
+    cors:
+      allowedOrigins:
+        - "*" # cors domains    
+  environment:
+    TABLE_NAME: ${param:tableName}
+
+package:
+  patterns:
+    - "!tmp/**"
+    - "!.git/**"
+    - "!*.md"
+    - "!jenkins.yml"
+    - "!node_modules/**"
+
+functions:
+  getAll:
+    handler: functions/getAll/handler.getAll
+    events:
+      - httpApi:
+          path: /filmes
+          method: GET
+    provisionedConcurrency: 1 # Limit 1 instance
+    reservedConcurrency: 1 # Limit 1 thread
+    iamRoleStatementsName: ${self:service}-${sls:stage, 'dev'}-getAll
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - dynamodb:Scan
+        Resource: "arn:aws:dynamodb:${opt:region}:*:table/${param:tableName}"
+  getByID:
+    handler: functions/getById/handler.getById
+    events:
+      - httpApi:
+          path: /filme/{id}
+          method: GET
+    provisionedConcurrency: 1 # Limit 1 instance
+    reservedConcurrency: 1 # Limit 1 thread
+    iamRoleStatementsName: ${self:service}-${sls:stage, 'dev'}-getById
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - dynamodb:GetItem
+        Resource: "arn:aws:dynamodb:${opt:region}:*:table/${param:tableName}"
+
+custom:
+  domain:
+    dev: locadora.dev.${opt:region}.escovabit.tec.br
+    prd: locadora.${opt:region}.escovabit.tec.br
+  customDomain:
+    domainName: ${self:custom.domain.${sls:stage, 'dev'}}
+    basePath: v1
+    stage: ${sls:stage, 'dev'}
+    certificateName: ${self:custom.domain.${sls:stage, 'dev'}}
+    endpointType: regional
+    apiType: http
