@@ -31,7 +31,7 @@ provider:
   httpApi:
     cors:
       allowedOrigins:
-        - "*" # cors domains    
+        - ${self:custom.domain.${sls:stage, 'dev'}} # cors domains    
   environment:
     TABLE_NAME: ${param:tableName}
 
