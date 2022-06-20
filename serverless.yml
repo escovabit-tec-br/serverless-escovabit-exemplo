@@ -31,7 +31,7 @@ provider:
   httpApi:
     cors:
       allowedOrigins:
-        - ${self:custom.domain.${sls:stage, 'dev'}} # cors domains    
+        - "https://${self:custom.domain.${sls:stage, 'dev'}}" # cors domains    
   environment:
     TABLE_NAME: ${param:tableName}
 
@@ -50,6 +50,7 @@ functions:
       - httpApi:
           path: /filmes
           method: GET
+    memorySize: 128
     provisionedConcurrency: 1 # Limit 1 instance
     reservedConcurrency: 1 # Limit 1 thread
     iamRoleStatementsName: ${self:service}-${sls:stage, 'dev'}-${opt:region, 'us-east-1'}-getAll
@@ -64,6 +65,7 @@ functions:
       - httpApi:
           path: /filme/{id}
           method: GET
+    memorySize: 128
     provisionedConcurrency: 1 # Limit 1 instance
     reservedConcurrency: 1 # Limit 1 thread
     iamRoleStatementsName: ${self:service}-${sls:stage, 'dev'}-${opt:region, 'us-east-1'}-getById
